@@ -18,36 +18,50 @@ concurrency:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+      # Récupération du code source
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Configuration de Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
 
+      # Installation des dépendances
       - name: Install dependencies
         run: npm ci
 
+      # Compilation Angular en production
       - name: Build Angular
         run: npx ng build --configuration production --base-href /Learn-English/
 
+      # Vérification du répertoire généré
+      - name: Verify build output
+        run: |
+          test -d ./dist/app/browser
+          test -f ./dist/app/browser/index.html
+          echo "Angular build output verified."
+
+      # Configuration de GitHub Pages
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
 
+      # Publication de l'artefact
       - name: Upload production artifact
         uses: actions/upload-pages-artifact@v4
         with:
           path: ./dist/app/browser
 
+      # Déploiement sur GitHub Pages
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
