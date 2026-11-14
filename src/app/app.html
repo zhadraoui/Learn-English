@@ -1,0 +1,190 @@
+<div class="min-h-screen bg-[#FAF9F6] text-slate-800 flex flex-col">
+  <!-- Strict 3-Zone Top Bar Contract -->
+  <header class="border-b border-slate-200/80 bg-white/90 backdrop-blur-xs">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-8 px-4 py-3.5 sm:px-6 lg:px-8">
+      <!-- Zone 1: Single text wordmark -->
+      <a
+        href="#lecteur"
+        class="font-display text-xl font-semibold tracking-tight text-slate-900 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+      >
+        Doux Alphabet
+      </a>
+
+      <!-- Zone 2: Concise single-line navigation links -->
+      <nav aria-label="Navigation principale" class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+        <a
+          href="#lecteur"
+          (click)="onSelectSection('alphabet')"
+          class="transition-colors hover:text-slate-900 hover:underline underline-offset-4 whitespace-nowrap shrink-0"
+        >
+          Lecteur vidéo
+        </a>
+        <a
+          href="#cours"
+          (click)="$event.preventDefault(); onOpenCoursesMenu()"
+          class="transition-colors hover:text-slate-900 hover:underline underline-offset-4 whitespace-nowrap shrink-0"
+        >
+          Cours de sons
+        </a>
+        <a
+          href="#abecedaire"
+          (click)="onSelectSection('alphabet')"
+          class="transition-colors hover:text-slate-900 hover:underline underline-offset-4 whitespace-nowrap shrink-0"
+        >
+          Abécédaire A–Z
+        </a>
+      </nav>
+
+      <!-- Zone 3: Single primary action button -->
+      <div class="flex items-center shrink-0">
+        <button
+          type="button"
+          (click)="onExportMp4()"
+          [disabled]="isExporting() || audio.isLoadingVoice()"
+          data-testid="header-export-btn"
+          class="inline-flex min-h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition-colors duration-150 hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 disabled:opacity-60 whitespace-nowrap shrink-0"
+        >
+          <mat-icon class="!text-[18px] !h-[18px] !w-[18px]">download</mat-icon>
+          <span>{{ isExporting() ? 'Export en cours…' : 'Télécharger MP4' }}</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+    <!-- Clean Editorial Header -->
+    <div id="lecteur" class="mb-5 max-w-3xl">
+      <h1
+        class="font-display text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl"
+        style="text-wrap: balance"
+      >
+        L'alphabet et les sons de l'anglais en douceur
+      </h1>
+      <p class="mt-2 text-base text-slate-600">
+        Vidéo de 30 secondes de A à Z et cours interactifs (A, E, I, O, U, Y) avec règles, exceptions et lecture vocale en anglais.
+      </p>
+    </div>
+
+    <!-- Course Selection Menu -->
+    <nav
+      id="cours"
+      aria-label="Menu de sélection des cours"
+      class="mb-6 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200/90 bg-white p-2 shadow-xs"
+      data-testid="course-menu"
+    >
+      <button
+        type="button"
+        (click)="onSelectSection('alphabet')"
+        [attr.aria-current]="activeSection() === 'alphabet' ? 'page' : null"
+        data-testid="course-menu-alphabet"
+        class="inline-flex min-h-10 items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 whitespace-nowrap shrink-0"
+        [class]="
+          activeSection() === 'alphabet'
+            ? 'bg-emerald-700 text-white shadow-xs'
+            : 'text-slate-700 hover:bg-slate-100'
+        "
+      >
+        <mat-icon class="!text-[18px] !h-[18px] !w-[18px]" aria-hidden="true">smart_display</mat-icon>
+        <span>Alphabet A–Z (30s)</span>
+      </button>
+
+      @for (course of phonicsCourses; track course.id) {
+        <button
+          type="button"
+          (click)="onSelectSection(course.id)"
+          [attr.aria-current]="activeSection() === course.id ? 'page' : null"
+          [attr.data-testid]="'course-menu-' + course.id"
+          class="inline-flex min-h-10 items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 whitespace-nowrap shrink-0"
+          [class]="
+            activeSection() === course.id
+              ? 'bg-emerald-700 text-white shadow-xs'
+              : 'text-slate-700 hover:bg-slate-100'
+          "
+        >
+          <mat-icon class="!text-[18px] !h-[18px] !w-[18px]" aria-hidden="true">menu_book</mat-icon>
+          <span>{{ course.title }}</span>
+        </button>
+      }
+    </nav>
+
+    @if (activeSection() === 'alphabet') {
+      <!-- Two-Zone Educational Sandbox Layout -->
+      <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+        <div class="lg:col-span-8">
+          <app-alphabet-stage
+            [currentTimeSec]="currentTimeSec()"
+            [isPlaying]="isPlaying()"
+            [isLoadingVoice]="audio.isLoadingVoice()"
+            [voiceSource]="audio.voiceSource()"
+            [voiceError]="audio.voiceError()"
+            [timings]="audio.timings()"
+            [themeId]="themeId()"
+            [displayMode]="displayMode()"
+            [musicEnabled]="musicEnabled()"
+            [activeLetterItem]="activeLetterItem()"
+            [isLoadingSingleLetter]="audio.isLoadingSingleLetter()"
+            [speakingSingleLetter]="audio.speakingSingleLetter()"
+            (togglePlay)="onTogglePlay()"
+            (restart)="onRestart()"
+            (seek)="onSeek($event)"
+            (toggleMusic)="onToggleMusic()"
+            (speakActiveLetter)="onSpeakActiveLetter($event)"
+          />
+        </div>
+
+        <div class="lg:col-span-4">
+          <app-studio-deck
+            [themeId]="themeId()"
+            [voiceId]="voiceId()"
+            [displayMode]="displayMode()"
+            [musicVolume]="musicVolume()"
+            [isLoadingVoice]="audio.isLoadingVoice()"
+            [isExporting]="isExporting()"
+            [exportStatus]="exportStatus()"
+            [exportError]="exportError()"
+            [lastExportUrl]="lastExportUrl()"
+            (selectTheme)="onSelectTheme($event)"
+            (selectVoice)="onSelectVoice($event)"
+            (selectDisplayMode)="onSelectDisplayMode($event)"
+            (changeMusicVolume)="onChangeMusicVolume($event)"
+            (regenerateVoice)="onRegenerateVoice()"
+            (exportMp4)="onExportMp4()"
+          />
+        </div>
+      </div>
+
+      <!-- Interactive 26-Letter Alphabet Strip -->
+      <app-alphabet-grid
+        [timings]="audio.timings()"
+        [activeIndex]="activeIndex()"
+        [loadingLetter]="audio.isLoadingSingleLetter()"
+        [speakingLetter]="audio.speakingSingleLetter()"
+        (selectLetter)="onSelectLetter($event)"
+      />
+    } @else {
+      <app-phonics-explorer
+        [course]="activePhonicsCourse()"
+        [lessonId]="activePhonicsLessonId()"
+        [voiceId]="voiceId()"
+        [isLoadingPhonics]="audio.isLoadingPhonics()"
+        [speakingPhonics]="audio.speakingPhonics()"
+        [isPlayingSequence]="audio.isPlayingPhonicsSequence()"
+        (selectLesson)="onSelectPhonicsLesson($event)"
+        (selectVoice)="onSelectVoice($event)"
+        (speakWord)="onSpeakPhonicsWord($event)"
+        (speakRule)="onSpeakPhonicsRule($event)"
+        (speakException)="onSpeakPhonicsException($event)"
+        (playAllExamples)="onPlayAllPhonicsExamples($event)"
+        (stopAudio)="onStopPhonicsAudio()"
+        (selectCourse)="onSelectSection($event)"
+      />
+    }
+  </main>
+
+  <footer class="mt-12 border-t border-slate-200/80 bg-white py-5">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 text-xs text-slate-500 sm:px-6 lg:px-8">
+      <span>Doux Alphabet · Apprentissage calme de l'anglais</span>
+      <span class="tabular-nums">Alphabet 00:30 (A–Z) · Cours de sons (A, E, I, O, U, Y)</span>
+    </div>
+  </footer>
+</div>

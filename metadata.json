@@ -1,0 +1,6 @@
+{
+  "name": "Doux Alphabet — Vidéo Éducative Anglaise",
+  "description": "Studio et lecteur vidéo éducatif de 30 secondes présentant l'alphabet anglais en douceur pour les enfants avec une voix claire et apaisante.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
